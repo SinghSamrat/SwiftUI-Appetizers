@@ -8,32 +8,44 @@
 import SwiftUI
 
 struct AppetizerListView: View {
+    @StateObject var viewModel = AppetizerListViewModel()
+    
     var body: some View {
-        NavigationView {
-            List(MockData.appetizers) { appetizer in
-                
-                HStack {
-                    Rectangle()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 120, height: 90)
-                        .cornerRadius(8)
-                    
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(appetizer.name)
-                            .font(.title3)
-                            .fontWeight(.medium)
-                        Text("$\(appetizer.price, specifier:"%.2f")")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.leading)
+        ZStack {
+            NavigationView {
+                List(viewModel.appetizers) { appetizer in
+                    AppetizerCellView(appetizer: appetizer)
+                        .onTapGesture {
+                            withAnimation {
+                                viewModel.isShowingDetail = true
+                            }
+                            viewModel.selectedAppetizer = appetizer
+                        }
                 }
-                
-                
-                
-            }
-            Text("AppetizerListView")
                 .navigationTitle("Appetizers")
+                .disabled(viewModel.isShowingDetail ? true : false)
+            }
+            .onAppear() {
+                viewModel.getAppetizersFromURI()
+            }
+            
+            .blur(radius: viewModel.isShowingDetail ? 15 : 0)
+            
+            
+            .alert(item: $viewModel.alertItem) { alertItem in
+                Alert(title: alertItem.title,
+                      message: alertItem.message,
+                      dismissButton: alertItem.dismissButton)
+            }
+            
+            if (viewModel.isLoading) {
+                LoadingView()
+            }
+            
+            if (viewModel.isShowingDetail) {
+                DetailsView(appetizer: viewModel.selectedAppetizer ?? MockData.sampleAppetizer,
+                            isShowingDetail: $viewModel.isShowingDetail)
+            }
         }
     }
 }

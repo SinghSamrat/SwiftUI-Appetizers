@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct CartView: View {
+    
     var body: some View {
         NavigationView {
+            
             Text("CartView")
                 .navigationTitle("Cart")
         }
